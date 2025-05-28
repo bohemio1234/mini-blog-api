@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,7 @@ public class User {
     @Column(unique = true, nullable = false, length = 50)
     private String username;
 
-    @Column(nullable = false, length = 60)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -36,31 +37,30 @@ public class User {
     @Column(nullable = false, length = 50)
     private String name;
 
-    private LocalDateTime birthday;
+    private LocalDate birthdate;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)
-    private Boolean enabled;
-    @Column(name = "account_non_expired", nullable = false)
+    private Boolean enabled = true;
+
+    @Column(nullable = false)
     private Boolean accountNonExpired = true;
 
-    @Column(name = "account_non_locked", nullable = false)
+    @Column(nullable = false)
     private Boolean accountNonLocked = true;
 
-    @Column(name = "credentials_non_expired", nullable = false)
+    @Column(nullable = false)
     private Boolean credentialsNonExpired = true;
 
     @ManyToMany
-    @JoinTable(
-            name = "USERS_ROLES",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "USERS_ROLES", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
 }
