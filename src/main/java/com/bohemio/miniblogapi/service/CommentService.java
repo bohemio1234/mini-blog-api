@@ -10,7 +10,7 @@ public interface CommentService {
 
     CommentResponseDto createComment(Long postId, CommentCreateRequestDto commentCreateRequestDto, String username);
     Page<CommentResponseDto> getCommentsByPostId(Long postId, Pageable pageable);
-//    CommentResponseDto updateComment(Long postId, Long commentId, CommentUpdateRequestDto commentUpdateRequestDto, String username);
-//    void deleteComment(Long postId, Long commentId, String username);
+    CommentResponseDto updateComment(Long postId, Long commentId, CommentUpdateRequestDto commentUpdateRequestDto, String username);
+    void deleteComment(Long postId, Long commentId, String username);
 
 }

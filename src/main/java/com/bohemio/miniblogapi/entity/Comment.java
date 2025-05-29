@@ -46,4 +46,10 @@ public class Comment {
         this.user = user;
     }
 
+    public void updateContent(String content) {
+        if (content != null) {
+            this.content = content;
+        }
+    }
+
 }
