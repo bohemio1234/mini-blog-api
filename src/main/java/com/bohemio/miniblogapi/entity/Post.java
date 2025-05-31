@@ -28,7 +28,7 @@ public class Post {
     private String content;
 
     @Column(name = "view_count", nullable = false)
-    private int viewCount = 0;
+    private int viewCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -37,7 +37,6 @@ public class Post {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

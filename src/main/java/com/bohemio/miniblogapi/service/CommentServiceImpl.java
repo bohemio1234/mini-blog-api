@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +64,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN') or @commentRepository.findById(#commentId).orElse(null)?.user.username == authentication.name")
     public CommentResponseDto updateComment(Long postId, Long commentId, CommentUpdateRequestDto commentUpdateRequestDto, String username) {
 
         Comment commentToUpdate = commentRepository.findById( commentId ).orElseThrow(
@@ -73,9 +75,7 @@ public class CommentServiceImpl implements CommentService {
             throw new IllegalStateException( "해당 게시글에 존재하지 않는 댓글입니다. (댓글 ID: " + commentId + ", 게시글 ID: " + postId + ")" );
         }
 
-        if (!commentToUpdate.getUser().getUsername().equals( username )) {
-            throw new AccessDeniedException( "댓글을 수정할 권한이 없습니다." );
-        }
+
 
         commentToUpdate.updateContent( commentUpdateRequestDto.getContent() );
 
@@ -89,7 +89,7 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(Long postId, Long commentId, String username) {
 
         Comment commentToDelete = commentRepository.findById( commentId ).orElseThrow(
-                () -> new EntityNotFoundException()
+                () -> new EntityNotFoundException("수정하려는 댓글을 찾을 수 없습니다: " + commentId)
         );
 
         if (!commentToDelete.getPost().getId().equals( postId )) {

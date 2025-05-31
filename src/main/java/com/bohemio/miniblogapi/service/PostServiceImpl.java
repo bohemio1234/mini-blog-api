@@ -10,6 +10,7 @@ import com.bohemio.miniblogapi.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,15 +53,10 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#postId).orElse(null)?.user.username == authentication.name")
     public PostResponseDto updatePost(Long postId, PostUpdateRequestDto requestDto, String username) {
 
         Post postToUpdate = postRepository.findById( postId ).orElseThrow( () -> new EntityNotFoundException( "해당 ID의 게시글을 찾을 수 없습니다: " + postId ) );
-
-        User requestUser = userRepository.findByUsername( username ).orElseThrow( () -> new UsernameNotFoundException( "사용자를 찾을 수 없습니다: " + username ) );
-
-        if (!postToUpdate.getUser().getUsername().equals( username )) {
-            throw new IllegalStateException( "게시물 수정 권한 없음" );
-        }
 
         if (requestDto.getTitle() != null) {
             postToUpdate.updateTitle( requestDto.getTitle() );
@@ -74,7 +70,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void deletePost(Long postId, String username) {
-        // TODO: 게시글 삭제 로직 구현!
         Post postToDelete = postRepository.findById( postId ).orElseThrow( () -> new EntityNotFoundException( "해당 ID의 게시글을 찾을수 없어요" + postId ) );
 
         User requestUser = userRepository.findByUsername( username ).orElseThrow( () -> new UsernameNotFoundException( "사용자를 찾을 수 없습니다: " + username ) );
