@@ -16,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("api/posts")
@@ -29,7 +32,12 @@ public class PostController {
         String username = userDetails.getUsername();
         PostResponseDto createdPost = postService.createPost(postCreateRequestDto, username);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdPost.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(createdPost);
     }
 
     @GetMapping
