@@ -69,6 +69,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#postId).orElse(null)?.user.username == authentication.name")
     public void deletePost(Long postId, String username) {
         Post postToDelete = postRepository.findById( postId ).orElseThrow( () -> new EntityNotFoundException( "해당 ID의 게시글을 찾을수 없어요" + postId ) );
 

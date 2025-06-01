@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "서버 내부에 오류가 발생했습니다. 관리자에게 문의해주세요.", 
+                "서버 내부에 오류가 발생했습니다. 관리자에게 문의해주세요.",
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
