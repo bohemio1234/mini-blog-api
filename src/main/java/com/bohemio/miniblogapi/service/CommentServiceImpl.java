@@ -86,6 +86,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN') or @commentRepository.findById(#commentId).orElse(null)?.user.username == authentication.name")
     public void deleteComment(Long postId, Long commentId, String username) {
 
         Comment commentToDelete = commentRepository.findById( commentId ).orElseThrow(
