@@ -1,10 +1,7 @@
 package com.bohemio.miniblogapi.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,6 +14,8 @@ import java.util.Set;
 @Table(name = "USERS")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User {
 
     @Id
@@ -64,14 +63,5 @@ public class User {
     @JoinTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    @Builder
-    public User(String username, String password, String email, String name, String nickname, Boolean enabled) {
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.name = name;
-        this.nickname = nickname;
-        this.enabled = enabled;
-    }
 
 }
