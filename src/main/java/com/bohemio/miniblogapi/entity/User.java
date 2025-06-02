@@ -41,27 +41,27 @@ public class User {
     private LocalDate birthdate;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at",nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(name = "updated_at",nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)
     private Boolean enabled = true;
 
-    @Column(nullable = false)
+    @Column(name = "account_non_expired", nullable = false)
     private Boolean accountNonExpired = true;
 
-    @Column(nullable = false)
+    @Column(name = "account_non_locked",nullable = false)
     private Boolean accountNonLocked = true;
 
-    @Column(nullable = false)
+    @Column(name = "credentials_non_expired",nullable = false)
     private Boolean credentialsNonExpired = true;
 
     @ManyToMany
-    @JoinTable(name = "USERS_ROLES", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     @Builder

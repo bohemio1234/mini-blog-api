@@ -28,7 +28,7 @@ public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final long tokenValidityInSeconds;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKeyString, @Value("${jwt.expiration-in-ms") long tokenValidityInSeconds) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secretKeyString, @Value("${jwt.expiration-in-ms}") long tokenValidityInSeconds) {
         this.secretKey = Keys.hmacShaKeyFor( secretKeyString.getBytes() ); //string을 바이트로. 키는 보통 바이트배열형태라서.
         this.tokenValidityInSeconds = tokenValidityInSeconds;
         logger.info("비밀키 로딩 완료!");
