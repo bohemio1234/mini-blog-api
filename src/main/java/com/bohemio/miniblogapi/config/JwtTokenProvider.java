@@ -17,6 +17,7 @@ import javax.crypto.SecretKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -27,14 +28,16 @@ public class JwtTokenProvider {
 
     private final SecretKey secretKey;
     private final long tokenValidityInSeconds;
+    private final long refreshTokenValidityInMilliseconds;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKeyString, @Value("${jwt.expiration-in-ms}") long tokenValidityInSeconds) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secretKeyString, @Value("${jwt.expiration-in-ms}") long tokenValidityInSeconds, @Value("${jwt.refresh-token-expiration-in-ms}") long refreshTokenValidityInMilliseconds) {
         this.secretKey = Keys.hmacShaKeyFor( secretKeyString.getBytes() ); //string을 바이트로. 키는 보통 바이트배열형태라서.
         this.tokenValidityInSeconds = tokenValidityInSeconds;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
         logger.info("비밀키 로딩 완료!");
     }
 
-    public String createToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication) {
         String authorities = authentication.getAuthorities().stream()
                 .map( GrantedAuthority::getAuthority )
                 .collect( Collectors.joining( "," ) ); // = "ROLE_USER,ROLE_ADMIN"
@@ -62,6 +65,34 @@ public class JwtTokenProvider {
 
     //밑부턴 위에 만들어진 JWT가 진짜인지, 유효한지 검증하고, 그 안에 숨겨진 정보들을 뽑아내는 메소드
     //즉, 프론트에서 이제 localStorage든 어디든 저장해서 String token으로 쏴줌. 이것들을 받고 행동하는 친구들.
+
+// === 새로운 메소드: 리프레시 토큰 생성 ===
+    // 리프레시 토큰은 특별한 클레임 없이, 식별자와 만료 시간만 가져도 충분한 경우가 많다.
+    // 여기서는 간단하게 UUID를 토큰 값으로 사용하고, JWT 형식으로 감싸서 만료 시간을 포함시킨다.
+    // 또는, 그냥 UUID 문자열 자체를 DB에 저장하고, JWT 형식으로 만들지 않아도 된다.
+    // 여기서는 JWT 형식으로 만들어 만료 시간 관리를 JWT에 맡기는 방식을 보여주겠다.
+
+    public String createRefreshToken(Authentication authentication) { // 또는 String username을 파라미터로 받을 수도 있다.
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + this.refreshTokenValidityInMilliseconds);
+
+        // 리프레시 토큰에는 사용자 이름 정도만 넣거나, 아예 아무 클레임도 안 넣을 수도 있다.
+        // 여기서는 액세스 토큰과 구분하기 위해 다른 클레임 구조를 가질 수 있음을 보여준다.
+        // 혹은 정말 간단하게는 jti (JWT ID)만으로도 구성 가능.
+        Claims claims = Jwts.claims()
+                .subject(authentication.getName()) // 누구의 리프레시 토큰인지 식별
+                .issuedAt(now)
+                .expiration(validity)
+                .id( UUID.randomUUID().toString()) // 리프레시 토큰 자체의 고유 ID (선택적)
+                .build();
+
+        // 리프레시 토큰은 내용이 중요하기보다는 그 자체의 존재와 유효성이 중요.
+        return Jwts.builder()
+                .claims(claims)
+                .signWith(secretKey) // 동일한 키로 서명 (또는 다른 키 사용도 가능)
+                .compact();
+    }
+
 
     // 토큰에서 Claims 추출 (내부적으로 서명 검증 포함)
     private Claims getClaimsFromToken(String token) throws JwtException {
@@ -114,6 +145,16 @@ public class JwtTokenProvider {
             logger.warn("유효하지 않은 JWT 토큰입니다.", e); // logger는 SLF4J 같은 로깅 프레임워크 사용
         }
         return false;
+    }
+
+    // 리프레시 토큰의 만료 시간을 가져오는 메소드 (DB에 저장된 토큰을 검증할 때 사용 가능)
+    public Date getExpiryDateFromToken(String token) {
+        try {
+            return getClaimsFromToken(token).getExpiration();
+        } catch (JwtException e) {
+            logger.warn("유효하지 않은 JWT 토큰입니다 (getExpiryDateFromToken): {}", e.getMessage());
+            return null;
+        }
     }
 
 }
